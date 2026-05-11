@@ -130,10 +130,6 @@ stateDiagram-v2
 ```text
 ros2-nav2-multi-robot-queue-scheduling/
 ├── README.md
-├── docs/
-│   ├── architecture.md
-│   ├── resume_description.md
-│   └── interview_script.md
 └── src/
     ├── fishbot_description/
     │   ├── launch/
