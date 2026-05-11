@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:macro name="fishbot_ros2_control" params="robot_namespace">
+
+        <!--
+            每台机器人使用独立 ros2_control system 名称：
+            robot1_FishBotGazeboSystem
+            robot2_FishBotGazeboSystem
+        -->
+        <ros2_control name="${robot_namespace}_FishBotGazeboSystem" type="system">
+            <hardware>
+                <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+            </hardware>
+
+            <joint name="left_wheel_joint">
+                <command_interface name="velocity">
+                    <param name="min">-1.0</param>
+                    <param name="max">1.0</param>
+                </command_interface>
+
+                <state_interface name="position" />
+                <state_interface name="velocity" />
+            </joint>
+
+            <joint name="right_wheel_joint">
+                <command_interface name="velocity">
+                    <param name="min">-1.0</param>
+                    <param name="max">1.0</param>
+                </command_interface>
+
+                <state_interface name="position" />
+                <state_interface name="velocity" />
+            </joint>
+        </ros2_control>
+
+        <gazebo>
+            <plugin filename="libgazebo_ros2_control.so"
+                    name="${robot_namespace}_gazebo_ros2_control">
+
+                <!--
+                    robot1 自动读取：
+                    config/robot1_ros2_controller.yaml
+
+                    robot2 自动读取：
+                    config/robot2_ros2_controller.yaml
+                -->
+                <parameters>$(find fishbot_description)/config/${robot_namespace}_ros2_controller.yaml</parameters>
+
+                <!--
+                    明确指定每台机器人自己的 robot_state_publisher
+                -->
+                <robot_param>robot_description</robot_param>
+                <robot_param_node>/${robot_namespace}/${robot_namespace}_robot_state_publisher</robot_param_node>
+
+                <ros>
+                    <!--
+                        gazebo_ros2_control 进入对应机器人命名空间：
+                        /robot1
+                        /robot2
+                    -->
+                    <namespace>/${robot_namespace}</namespace>
+
+                    <!--
+                        diff_drive_controller 原始话题 remap 成简洁话题：
+                        /robot1/cmd_vel
+                        /robot1/odom
+
+                        /robot2/cmd_vel
+                        /robot2/odom
+                    -->
+                    <remapping>${robot_namespace}_diff_drive_controller/cmd_vel_unstamped:=cmd_vel</remapping>
+                    <remapping>${robot_namespace}_diff_drive_controller/odom:=odom</remapping>
+
+                    <!--
+                        关键：把 diff_drive_controller 发布的 odom TF 放进各自机器人 TF 话题
+                    -->
+                    <remapping>/tf:=/${robot_namespace}/tf</remapping>
+                    <remapping>/tf_static:=/${robot_namespace}/tf_static</remapping>
+                </ros>
+            </plugin>
+        </gazebo>
+
+    </xacro:macro>
+
+</robot>

@@ -1,0 +1,299 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="queue_warehouse_world">
+    <!--
+      Queue Warehouse World for ROS2 Nav2 queue-operation / multi-robot coordination demo.
+
+      Recommended navigation target points in map/world frame:
+        Start area:        x=-3.50, y= 0.00, yaw=0.00
+        Waiting point P3:  x=-1.20, y=-0.65, yaw=0.00
+        Waiting point P2:  x= 0.00, y=-0.65, yaw=0.00
+        Waiting point P1:  x= 1.20, y=-0.65, yaw=0.00
+        Workstation:       x= 3.00, y=-0.20, yaw=0.00
+        Exit point:        x= 0.80, y=-2.00, yaw=-1.57
+
+      Layout:
+        Left side  : robot start/staging area
+        Middle     : queue lane and waiting points P1/P2/P3
+        Right side : single workstation/resource area
+        Bottom     : exit area
+    -->
+
+    <physics type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+
+    <scene>
+      <ambient>0.35 0.35 0.35 1</ambient>
+      <background>0.05 0.06 0.07 1</background>
+      <shadows>true</shadows>
+    </scene>
+
+    <light name="main_light" type="directional">
+      <pose>0 0 8 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.4 0.3 -1</direction>
+    </light>
+
+    <!-- Ground -->
+    <model name="dark_ground">
+      <static>true</static>
+      <pose>0 0 -0.01 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10.0 6.0 0.02</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10.0 6.0 0.02</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.18 0.18 0.18 1</ambient>
+            <diffuse>0.18 0.18 0.18 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Perimeter walls -->
+    <model name="wall_north">
+      <static>true</static>
+      <pose>0 3.0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>10.0 0.12 1.0</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>10.0 0.12 1.0</size></box></geometry><material><ambient>0.25 0.28 0.30 1</ambient><diffuse>0.25 0.28 0.30 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="wall_south">
+      <static>true</static>
+      <pose>0 -3.0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>10.0 0.12 1.0</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>10.0 0.12 1.0</size></box></geometry><material><ambient>0.25 0.28 0.30 1</ambient><diffuse>0.25 0.28 0.30 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="wall_west">
+      <static>true</static>
+      <pose>-5.0 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.12 6.0 1.0</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.12 6.0 1.0</size></box></geometry><material><ambient>0.25 0.28 0.30 1</ambient><diffuse>0.25 0.28 0.30 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="wall_east">
+      <static>true</static>
+      <pose>5.0 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.12 6.0 1.0</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.12 6.0 1.0</size></box></geometry><material><ambient>0.25 0.28 0.30 1</ambient><diffuse>0.25 0.28 0.30 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- Visual-only floor zones. These do not block navigation. -->
+    <model name="start_area_floor_marker">
+      <static>true</static>
+      <pose>-3.55 0.0 0.012 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>1.2 1.8 0.01</size></box></geometry>
+          <material><ambient>0.10 0.22 0.36 1</ambient><diffuse>0.10 0.22 0.36 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="queue_lane_floor_marker">
+      <static>true</static>
+      <pose>0.2 -0.65 0.014 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>5.2 0.85 0.01</size></box></geometry>
+          <material><ambient>0.22 0.22 0.24 1</ambient><diffuse>0.22 0.22 0.24 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="workstation_floor_marker">
+      <static>true</static>
+      <pose>3.05 -0.20 0.016 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>1.25 1.0 0.01</size></box></geometry>
+          <material><ambient>0.32 0.18 0.10 1</ambient><diffuse>0.32 0.18 0.10 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="exit_area_floor_marker">
+      <static>true</static>
+      <pose>0.8 -2.0 0.018 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>1.5 0.8 0.01</size></box></geometry>
+          <material><ambient>0.12 0.28 0.18 1</ambient><diffuse>0.12 0.28 0.18 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Waiting point markers, visual only -->
+    <model name="waiting_point_P3_marker">
+      <static>true</static>
+      <pose>-1.20 -0.65 0.035 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>0.22</radius><length>0.035</length></cylinder></geometry>
+          <material><ambient>0.12 0.42 0.72 1</ambient><diffuse>0.12 0.42 0.72 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="waiting_point_P2_marker">
+      <static>true</static>
+      <pose>0.00 -0.65 0.035 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>0.22</radius><length>0.035</length></cylinder></geometry>
+          <material><ambient>0.12 0.52 0.62 1</ambient><diffuse>0.12 0.52 0.62 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="waiting_point_P1_marker">
+      <static>true</static>
+      <pose>1.20 -0.65 0.035 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>0.22</radius><length>0.035</length></cylinder></geometry>
+          <material><ambient>0.12 0.62 0.42 1</ambient><diffuse>0.12 0.62 0.42 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="workstation_target_marker">
+      <static>true</static>
+      <pose>3.00 -0.20 0.04 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>0.25</radius><length>0.04</length></cylinder></geometry>
+          <material><ambient>0.72 0.35 0.08 1</ambient><diffuse>0.72 0.35 0.08 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="exit_target_marker">
+      <static>true</static>
+      <pose>0.80 -2.00 0.04 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>0.25</radius><length>0.04</length></cylinder></geometry>
+          <material><ambient>0.18 0.65 0.22 1</ambient><diffuse>0.18 0.65 0.22 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Static shelves / obstacles. These have collision and will be seen by lidar. -->
+    <model name="shelf_top_1">
+      <static>true</static>
+      <pose>-3.0 2.0 0.35 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>1.4 0.45 0.7</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.4 0.45 0.7</size></box></geometry><material><ambient>0.35 0.24 0.16 1</ambient><diffuse>0.35 0.24 0.16 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="shelf_top_2">
+      <static>true</static>
+      <pose>-1.2 2.0 0.35 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>1.4 0.45 0.7</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.4 0.45 0.7</size></box></geometry><material><ambient>0.35 0.24 0.16 1</ambient><diffuse>0.35 0.24 0.16 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="shelf_top_3">
+      <static>true</static>
+      <pose>0.6 2.0 0.35 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>1.4 0.45 0.7</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.4 0.45 0.7</size></box></geometry><material><ambient>0.35 0.24 0.16 1</ambient><diffuse>0.35 0.24 0.16 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="shelf_top_4">
+      <static>true</static>
+      <pose>2.4 2.0 0.35 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>1.4 0.45 0.7</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.4 0.45 0.7</size></box></geometry><material><ambient>0.35 0.24 0.16 1</ambient><diffuse>0.35 0.24 0.16 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="shelf_bottom_1">
+      <static>true</static>
+      <pose>-3.0 -2.1 0.35 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>1.4 0.45 0.7</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.4 0.45 0.7</size></box></geometry><material><ambient>0.30 0.21 0.14 1</ambient><diffuse>0.30 0.21 0.14 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="shelf_bottom_2">
+      <static>true</static>
+      <pose>-1.2 -2.1 0.35 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>1.4 0.45 0.7</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.4 0.45 0.7</size></box></geometry><material><ambient>0.30 0.21 0.14 1</ambient><diffuse>0.30 0.21 0.14 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="shelf_bottom_3">
+      <static>true</static>
+      <pose>2.6 -2.1 0.35 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>1.4 0.45 0.7</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.4 0.45 0.7</size></box></geometry><material><ambient>0.30 0.21 0.14 1</ambient><diffuse>0.30 0.21 0.14 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- Workstation body. Kept slightly above/right of target so the target point is reachable. -->
+    <model name="workstation_body">
+      <static>true</static>
+      <pose>3.65 0.75 0.45 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>1.0 0.55 0.9</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.0 0.55 0.9</size></box></geometry><material><ambient>0.45 0.22 0.10 1</ambient><diffuse>0.45 0.22 0.10 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- Queue guide posts. These are obstacles, but kept outside the target points. -->
+    <model name="queue_post_left">
+      <static>true</static>
+      <pose>-2.0 0.35 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><cylinder><radius>0.08</radius><length>0.5</length></cylinder></geometry></collision>
+        <visual name="visual"><geometry><cylinder><radius>0.08</radius><length>0.5</length></cylinder></geometry><material><ambient>0.55 0.45 0.10 1</ambient><diffuse>0.55 0.45 0.10 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <model name="queue_post_right">
+      <static>true</static>
+      <pose>2.2 0.35 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><cylinder><radius>0.08</radius><length>0.5</length></cylinder></geometry></collision>
+        <visual name="visual"><geometry><cylinder><radius>0.08</radius><length>0.5</length></cylinder></geometry><material><ambient>0.55 0.45 0.10 1</ambient><diffuse>0.55 0.45 0.10 1</diffuse></material></visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

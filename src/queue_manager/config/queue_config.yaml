@@ -1,0 +1,56 @@
+# 多机器人排队作业与共享资源调度配置文件
+# 修改场景点位、机器人数量、作业时间、失败恢复参数时，优先改这个文件，不要直接改 Python 源码。
+
+# 调度队列顺序：谁先进入排队系统
+queue_order:
+  - robot1
+  - robot2
+
+# 队首等待点。只有位于该等待点的机器人，才允许进入 WORKSTATION。
+front_wait_slot: P1
+
+# 等待点槽位
+# P1：队首等待点，靠近工作站
+# P2：第二等待点
+# P3：预留给三机器人扩展
+wait_slots:
+  P1: [1.20, -0.65, 0.00]
+  P2: [0.00, -0.65, 0.00]
+  P3: [-1.20, -0.65, 0.00]
+
+# 共享工作站配置
+workstation:
+  pose: [3.00, -0.20, 0.00]
+  work_duration: 5.0
+
+# 机器人配置
+# name 必须和 namespace 一致，例如 /robot1、/robot2
+robots:
+  - name: robot1
+    initial_pose: [-3.50, 0.50, 0.00]
+    wait_slot: P1
+    exit_pose: [0.35, -2.00, -1.57]
+
+  - name: robot2
+    initial_pose: [-3.50, -0.50, 0.00]
+    wait_slot: P2
+    exit_pose: [1.25, -2.00, -1.57]
+
+# AMCL 初始化参数
+amcl:
+  initial_pose_publish_times: 5
+  initial_pose_wait_time: 5.0
+
+# 失败恢复参数
+recovery:
+  max_retry_count: 2
+  retry_delay: 3.0
+
+# 实验日志配置
+logging:
+  result_csv_path: queue_result.csv
+
+# RViz Marker 可视化配置
+visualization:
+  marker_lifetime_sec: 2
+  summary_pose: [-2.70, 2.00, 0.00]

@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:macro name="fishbot_ros2_control" params="robot_namespace">
+
+        <!--
+            多机器人时，ros2_control 的 system name 必须区分。
+            否则 robot1 / robot2 可能出现控制资源冲突。
+        -->
+        <ros2_control name="${robot_namespace}_FishBotGazeboSystem" type="system">
+            <hardware>
+                <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+            </hardware>
+
+            <joint name="left_wheel_joint">
+                <command_interface name="velocity">
+                    <param name="min">-1.0</param>
+                    <param name="max">1.0</param>
+                </command_interface>
+
+                <state_interface name="position" />
+                <state_interface name="velocity" />
+            </joint>
+
+            <joint name="right_wheel_joint">
+                <command_interface name="velocity">
+                    <param name="min">-1.0</param>
+                    <param name="max">1.0</param>
+                </command_interface>
+
+                <state_interface name="position" />
+                <state_interface name="velocity" />
+            </joint>
+        </ros2_control>
+
+        <gazebo>
+            <!--
+                多机器人时，gazebo_ros2_control 插件名也必须区分。
+                不要两个机器人都叫 gazebo_ros2_control。
+            -->
+            <plugin filename="libgazebo_ros2_control.so" name="${robot_namespace}_gazebo_ros2_control">
+                <parameters>$(find fishbot_description)/config/fishbot_ros2_controller.yaml</parameters>
+
+                <ros>
+                    <namespace>/${robot_namespace}</namespace>
+
+                    <!--
+                        保持相对 remap：
+                        在 /robot1 命名空间下会变成 /robot1/cmd_vel、/robot1/odom
+                        在 /robot2 命名空间下会变成 /robot2/cmd_vel、/robot2/odom
+                    -->
+                    <remapping>fishbot_diff_drive_controller/cmd_vel_unstamped:=cmd_vel</remapping>
+                    <remapping>fishbot_diff_drive_controller/odom:=odom</remapping>
+                </ros>
+            </plugin>
+        </gazebo>
+
+    </xacro:macro>
+
+</robot>

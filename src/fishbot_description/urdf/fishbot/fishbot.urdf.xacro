@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="fishbot">
+
+    <!-- 多机器人命名空间参数，例如 robot1 / robot2 -->
+    <xacro:arg name="robot_namespace" default="" />
+
+    <!-- 机器人基础结构 -->
+    <xacro:include filename="$(find fishbot_description)/urdf/fishbot/base.urdf.xacro" />
+
+    <!-- 传感器组件：只保留 IMU 和激光雷达 -->
+    <xacro:include filename="$(find fishbot_description)/urdf/fishbot/sensor/imu.urdf.xacro" />
+    <xacro:include filename="$(find fishbot_description)/urdf/fishbot/sensor/laser.urdf.xacro" />
+
+    <!-- 如果没有摄像头，不要 include camera -->
+    <!-- <xacro:include filename="$(find fishbot_description)/urdf/fishbot/sensor/camera.urdf.xacro" /> -->
+
+    <!-- 执行器组件 -->
+    <xacro:include filename="$(find fishbot_description)/urdf/fishbot/actuator/wheel.urdf.xacro" />
+    <xacro:include filename="$(find fishbot_description)/urdf/fishbot/actuator/caster.urdf.xacro" />
+
+    <!-- 机器人本体 -->
+    <xacro:base_xacro length="0.12" radius="0.1" />
+
+    <!-- 传感器安装 -->
+    <xacro:imu_xacro xyz="0 0 0.02" />
+    <xacro:laser_xacro xyz="0 0 0.10" />
+
+    <!-- 没有摄像头，先注释 -->
+    <!-- <xacro:camera_xacro xyz="0.10 0 0.075" /> -->
+
+    <!-- 主动轮 + 从动轮 -->
+    <xacro:wheel_xacro wheel_name="left" xyz="0 0.10 -0.06" />
+    <xacro:wheel_xacro wheel_name="right" xyz="0 -0.10 -0.06" />
+    <xacro:caster_xacro caster_name="front" xyz="0.08 0.0 -0.076" />
+    <xacro:caster_xacro caster_name="back" xyz="-0.08 0.0 -0.076" />
+
+    <!-- 
+        注意：
+        不再启用 gazebo_ros_diff_drive 插件。
+        现在统一使用 gazebo_ros2_control + diff_drive_controller。
+        否则容易出现 /cmd_vel、/odom 冲突。
+    -->
+    <!-- <xacro:include filename="$(find fishbot_description)/urdf/fishbot/plugins/gazebo_control_plugin.xacro" /> -->
+    <!-- <xacro:gazebo_control_plugin /> -->
+
+    <!-- ros2_control 控制插件 -->
+    <xacro:include filename="$(find fishbot_description)/urdf/fishbot/fishbot.ros2_control.xacro" />
+    <xacro:fishbot_ros2_control robot_namespace="$(arg robot_namespace)" />
+
+    <!-- Gazebo 雷达和 IMU 插件 -->
+    <xacro:include filename="$(find fishbot_description)/urdf/fishbot/plugins/gazebo_sensor_plugin.xacro" />
+    <xacro:gazebo_sensor_plugin robot_namespace="$(arg robot_namespace)" />
+
+</robot>
